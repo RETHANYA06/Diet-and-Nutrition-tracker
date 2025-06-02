@@ -1,0 +1,1934 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Nutrition Tracker{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Welcome Header -->
+    <div class="bg-gradient-to-r from-emerald-500 via-green-600 to-teal-600 text-white rounded-2xl p-8 shadow-2xl card-hover relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white bg-opacity-10 rounded-full -mr-16 -mt-16"></div>
+        <div class="absolute bottom-0 left-0 w-24 h-24 bg-white bg-opacity-10 rounded-full -ml-12 -mb-12"></div>
+        <div class="relative z-10">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-bold mb-3 flex items-center">
+                        Welcome back, {{ user.first_name|default:user.username }}!
+                        <span class="ml-3 animate-pulse-gentle">👋</span>
+                    </h1>
+                    <p class="text-green-100 text-lg mb-4">Here's your nutrition overview for {{ today|date:"F d, Y" }}</p>
+                    <div class="flex items-center space-x-6">
+                        <div class="flex items-center text-green-200">
+                            <i class="fas fa-calendar-day mr-2"></i>
+                            <span class="text-sm">{{ today|date:"l" }}</span>
+                        </div>
+                        <div class="flex items-center text-green-200">
+                            <i class="fas fa-clock mr-2"></i>
+                            <span class="text-sm" id="current-time"></span>
+                        </div>
+                        <div class="flex items-center text-green-200">
+                            <i class="fas fa-fire mr-2"></i>
+                            <span class="text-sm">Stay motivated!</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hidden lg:block">
+                    <div class="w-28 h-28 bg-white bg-opacity-20 rounded-full flex items-center justify-center animate-pulse-gentle">
+                        <i class="fas fa-chart-line text-white text-4xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Calories Card -->
+        <div class="dark-card rounded-2xl shadow-xl p-6 card-hover border-orange-500">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center">
+                    <div class="p-4 rounded-2xl bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg">
+                        <i class="fas fa-fire text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-300">Daily Calories</p>
+                        <p class="text-3xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
+                            {{ total_calories|floatformat:0 }}
+                        </p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs text-gray-400">Goal</div>
+                    <div class="text-lg font-semibold text-gray-200">{{ calorie_goal|floatformat:0 }}</div>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-300">Progress</span>
+                    <span class="font-semibold text-orange-400">{{ calorie_percentage|floatformat:0 }}%</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+                    <div class="bg-gradient-to-r from-orange-500 to-red-500 h-3 rounded-full transition-all duration-500 ease-out"
+                         style="width: {{ calorie_percentage }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Protein Card -->
+        <div class="dark-card rounded-2xl shadow-xl p-6 card-hover border-red-500">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center">
+                    <div class="p-4 rounded-2xl bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg">
+                        <i class="fas fa-dumbbell text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-300">Protein</p>
+                        <p class="text-3xl font-bold bg-gradient-to-r from-red-400 to-pink-400 bg-clip-text text-transparent">
+                            {{ total_protein|floatformat:1 }}g
+                        </p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs text-gray-400">Goal</div>
+                    <div class="text-lg font-semibold text-gray-200">{{ protein_goal|floatformat:0 }}g</div>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-300">Progress</span>
+                    <span class="font-semibold text-red-400">{{ protein_percentage|floatformat:0 }}%</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+                    <div class="bg-gradient-to-r from-red-500 to-pink-500 h-3 rounded-full transition-all duration-500 ease-out"
+                         style="width: {{ protein_percentage }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carbs Card -->
+        <div class="dark-card rounded-2xl shadow-xl p-6 card-hover border-yellow-500">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center">
+                    <div class="p-4 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-400 text-white shadow-lg">
+                        <i class="fas fa-bread-slice text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-300">Carbs</p>
+                        <p class="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+                            {{ total_carbs|floatformat:1 }}g
+                        </p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs text-gray-400">Goal</div>
+                    <div class="text-lg font-semibold text-gray-200">{{ carbs_goal|floatformat:0 }}g</div>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-300">Progress</span>
+                    <span class="font-semibold text-yellow-400">{{ carbs_percentage|floatformat:0 }}%</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+                    <div class="bg-gradient-to-r from-yellow-500 to-orange-400 h-3 rounded-full transition-all duration-500 ease-out"
+                         style="width: {{ carbs_percentage }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fat Card -->
+        <div class="dark-card rounded-2xl shadow-xl p-6 card-hover border-purple-500">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center">
+                    <div class="p-4 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg">
+                        <i class="fas fa-cheese text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-300">Fat</p>
+                        <p class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
+                            {{ total_fat|floatformat:1 }}g
+                        </p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs text-gray-400">Goal</div>
+                    <div class="text-lg font-semibold text-gray-200">{{ fat_goal|floatformat:0 }}g</div>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-300">Progress</span>
+                    <span class="font-semibold text-purple-400">{{ fat_percentage|floatformat:0 }}%</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+                    <div class="bg-gradient-to-r from-purple-500 to-indigo-500 h-3 rounded-full transition-all duration-500 ease-out"
+                         style="width: {{ fat_percentage }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Water Intake -->
+        <div class="dark-card rounded-2xl shadow-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-100">
+                    <i class="fas fa-tint text-blue-400 mr-2"></i>
+                    Water Intake
+                </h3>
+                <button onclick="showWaterReminderModal()" class="relative text-red-500 hover:text-red-600 transition duration-200" title="Water Reminder Settings">
+                    <i class="fas fa-bell text-sm"></i>
+                    <span id="reminderStatusDot" class="absolute -top-1 -right-1 w-2 h-2 bg-gray-400 rounded-full hidden"></span>
+                </button>
+            </div>
+            <div class="text-center mb-4">
+                <div class="text-3xl font-bold text-blue-400">{{ total_water|floatformat:0 }}ml</div>
+                <div class="text-sm text-gray-300">of {{ water_goal|floatformat:0 }}ml goal</div>
+                {% if water_entries_count > 0 %}
+                    <div class="text-xs text-gray-400 mt-1">{{ water_entries_count }} entries today</div>
+                {% endif %}
+                <div id="waterStreak" class="text-xs text-green-400 mt-1 hidden">
+                    <i class="fas fa-fire mr-1"></i><span id="streakCount">0</span> day streak!
+                </div>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-4 mb-4">
+                <div class="bg-gradient-to-r from-blue-500 to-cyan-500 h-4 rounded-full" style="width: {{ water_percentage }}%"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="addWater(250)" class="bg-blue-500 text-white py-2 px-3 rounded-lg hover:bg-blue-600 transition duration-200 text-sm">
+                    <i class="fas fa-plus mr-1"></i>250ml
+                </button>
+                <button onclick="addWater(500)" class="bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition duration-200 text-sm">
+                    <i class="fas fa-plus mr-1"></i>500ml
+                </button>
+            </div>
+            <button onclick="showWaterModal()" class="w-full mt-2 bg-blue-100 text-blue-700 py-2 rounded-lg hover:bg-blue-200 transition duration-200 text-sm">
+                <i class="fas fa-tint mr-2"></i>Custom Amount
+            </button>
+            {% if water_entries_count > 0 %}
+                <button onclick="resetDailyWater()" class="w-full mt-2 bg-red-100 text-red-700 py-2 rounded-lg hover:bg-red-200 transition duration-200 text-sm">
+                    <i class="fas fa-redo mr-2"></i>Reset Today's Water
+                </button>
+            {% endif %}
+        </div>
+
+        <!-- Daily Meal Plan & Diet Recommendations -->
+        <div class="dark-card rounded-2xl shadow-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-100">
+                    <i class="fas fa-calendar-day text-green-400 mr-2"></i>
+                    Today's Meal Plan
+                </h3>
+                <div class="flex items-center space-x-3">
+                    <button onclick="editMealPlan()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-xs transition-all duration-200 transform hover:scale-105 flex items-center">
+                        <i class="fas fa-edit mr-1"></i>
+                        Customize
+                    </button>
+                    <div class="text-xs text-gray-400">{{ today|date:"M d, Y" }}</div>
+                </div>
+            </div>
+
+            <!-- Meal Plan for Today -->
+            <div class="space-y-3" id="meal-plan-container">
+                <!-- Breakfast -->
+                <div class="bg-gradient-to-r from-orange-900 to-yellow-900 bg-opacity-30 p-3 rounded-lg border border-orange-600">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-semibold text-orange-300 flex items-center text-sm">
+                            <i class="fas fa-sun text-orange-400 mr-2"></i>
+                            Breakfast - {{ daily_meal_plan.breakfast.name }}
+                        </h4>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="editMeal('breakfast')" class="text-orange-300 hover:text-orange-200 transition-colors duration-200" title="Edit Breakfast">
+                                <i class="fas fa-edit text-xs"></i>
+                            </button>
+                            <span class="text-xs text-orange-400">7:00 - 9:00 AM</span>
+                        </div>
+                    </div>
+
+                    <!-- Condensed View -->
+                    <div class="meal-condensed">
+                        <div class="text-xs text-orange-300">
+                            <strong>{{ daily_meal_plan.breakfast.totals.calories }} calories</strong> |
+                            {{ daily_meal_plan.breakfast.items|length }} items
+                        </div>
+                    </div>
+
+                    <!-- Detailed View (Hidden by default) -->
+                    <div class="meal-detailed hidden">
+                        <div class="space-y-1 text-sm mb-2">
+                            {% for item in daily_meal_plan.breakfast.items %}
+                            <div class="flex items-center text-gray-300">
+                                <i class="fas fa-circle text-orange-400 text-xs mr-2"></i>
+                                <span>{{ item.name }} ({{ item.calories }} cal)</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-xs text-orange-300 border-t border-orange-600 pt-2">
+                            <strong>Total:</strong> {{ daily_meal_plan.breakfast.totals.calories }} calories |
+                            Protein: {{ daily_meal_plan.breakfast.totals.protein }}g |
+                            Carbs: {{ daily_meal_plan.breakfast.totals.carbs }}g |
+                            Fat: {{ daily_meal_plan.breakfast.totals.fat }}g
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lunch -->
+                <div class="bg-gradient-to-r from-green-900 to-emerald-900 bg-opacity-30 p-3 rounded-lg border border-green-600">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-semibold text-green-300 flex items-center text-sm">
+                            <i class="fas fa-sun text-green-400 mr-2"></i>
+                            Lunch - {{ daily_meal_plan.lunch.name }}
+                        </h4>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="editMeal('lunch')" class="text-green-300 hover:text-green-200 transition-colors duration-200" title="Edit Lunch">
+                                <i class="fas fa-edit text-xs"></i>
+                            </button>
+                            <span class="text-xs text-green-400">12:00 - 2:00 PM</span>
+                        </div>
+                    </div>
+
+                    <!-- Condensed View -->
+                    <div class="meal-condensed">
+                        <div class="text-xs text-green-300">
+                            <strong>{{ daily_meal_plan.lunch.totals.calories }} calories</strong> |
+                            {{ daily_meal_plan.lunch.items|length }} items
+                        </div>
+                    </div>
+
+                    <!-- Detailed View (Hidden by default) -->
+                    <div class="meal-detailed hidden">
+                        <div class="space-y-1 text-sm mb-2">
+                            {% for item in daily_meal_plan.lunch.items %}
+                            <div class="flex items-center text-gray-300">
+                                <i class="fas fa-circle text-green-400 text-xs mr-2"></i>
+                                <span>{{ item.name }} ({{ item.calories }} cal)</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-xs text-green-300 border-t border-green-600 pt-2">
+                            <strong>Total:</strong> {{ daily_meal_plan.lunch.totals.calories }} calories |
+                            Protein: {{ daily_meal_plan.lunch.totals.protein }}g |
+                            Carbs: {{ daily_meal_plan.lunch.totals.carbs }}g |
+                            Fat: {{ daily_meal_plan.lunch.totals.fat }}g
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dinner -->
+                <div class="bg-gradient-to-r from-purple-900 to-indigo-900 bg-opacity-30 p-3 rounded-lg border border-purple-600">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-semibold text-purple-300 flex items-center text-sm">
+                            <i class="fas fa-moon text-purple-400 mr-2"></i>
+                            Dinner - {{ daily_meal_plan.dinner.name }}
+                        </h4>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="editMeal('dinner')" class="text-purple-300 hover:text-purple-200 transition-colors duration-200" title="Edit Dinner">
+                                <i class="fas fa-edit text-xs"></i>
+                            </button>
+                            <span class="text-xs text-purple-400">6:00 - 8:00 PM</span>
+                        </div>
+                    </div>
+
+                    <!-- Condensed View -->
+                    <div class="meal-condensed">
+                        <div class="text-xs text-purple-300">
+                            <strong>{{ daily_meal_plan.dinner.totals.calories }} calories</strong> |
+                            {{ daily_meal_plan.dinner.items|length }} items
+                        </div>
+                    </div>
+
+                    <!-- Detailed View (Hidden by default) -->
+                    <div class="meal-detailed hidden">
+                        <div class="space-y-1 text-sm mb-2">
+                            {% for item in daily_meal_plan.dinner.items %}
+                            <div class="flex items-center text-gray-300">
+                                <i class="fas fa-circle text-purple-400 text-xs mr-2"></i>
+                                <span>{{ item.name }} ({{ item.calories }} cal)</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-xs text-purple-300 border-t border-purple-600 pt-2">
+                            <strong>Total:</strong> {{ daily_meal_plan.dinner.totals.calories }} calories |
+                            Protein: {{ daily_meal_plan.dinner.totals.protein }}g |
+                            Carbs: {{ daily_meal_plan.dinner.totals.carbs }}g |
+                            Fat: {{ daily_meal_plan.dinner.totals.fat }}g
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Snacks -->
+                <div class="bg-gradient-to-r from-blue-900 to-cyan-900 bg-opacity-30 p-3 rounded-lg border border-blue-600">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-semibold text-blue-300 flex items-center text-sm">
+                            <i class="fas fa-cookie-bite text-blue-400 mr-2"></i>
+                            Healthy Snacks - {{ daily_meal_plan.snacks.name }}
+                        </h4>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="editMeal('snacks')" class="text-blue-300 hover:text-blue-200 transition-colors duration-200" title="Edit Snacks">
+                                <i class="fas fa-edit text-xs"></i>
+                            </button>
+                            <span class="text-xs text-blue-400">Throughout day</span>
+                        </div>
+                    </div>
+
+                    <!-- Condensed View -->
+                    <div class="meal-condensed">
+                        <div class="text-xs text-blue-300">
+                            <strong>{{ daily_meal_plan.snacks.totals.calories }} calories</strong> |
+                            {{ daily_meal_plan.snacks.items|length }} items
+                        </div>
+                    </div>
+
+                    <!-- Detailed View (Hidden by default) -->
+                    <div class="meal-detailed hidden">
+                        <div class="space-y-1 text-sm mb-2">
+                            {% for item in daily_meal_plan.snacks.items %}
+                            <div class="flex items-center text-gray-300">
+                                <i class="fas fa-circle text-blue-400 text-xs mr-2"></i>
+                                <span>{{ item.name }} ({{ item.calories }} cal)</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-xs text-blue-300 border-t border-blue-600 pt-2">
+                            <strong>Total:</strong> {{ daily_meal_plan.snacks.totals.calories }} calories |
+                            Protein: {{ daily_meal_plan.snacks.totals.protein }}g |
+                            Carbs: {{ daily_meal_plan.snacks.totals.carbs }}g |
+                            Fat: {{ daily_meal_plan.snacks.totals.fat }}g
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View More/Less Toggle -->
+            <div class="mt-4 text-center">
+                <button onclick="toggleMealDetails()" id="meal-toggle-btn" class="bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded-lg text-sm transition-all duration-200 flex items-center mx-auto">
+                    <i class="fas fa-chevron-down mr-2" id="meal-toggle-icon"></i>
+                    <span id="meal-toggle-text">View More Details</span>
+                </button>
+            </div>
+
+            <!-- Daily Summary (Hidden by default) -->
+            <div class="mt-4 p-3 bg-gray-800 bg-opacity-50 rounded-lg border border-gray-600 meal-detailed hidden">
+                <h5 class="text-sm font-semibold text-gray-200 mb-2">
+                    <i class="fas fa-chart-pie text-green-400 mr-2"></i>
+                    Recommended Daily Totals
+                </h5>
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div class="text-center">
+                        <div class="text-orange-400 font-bold text-lg">{{ daily_meal_plan.daily_totals.calories }}</div>
+                        <div class="text-gray-300">Calories</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-red-400 font-bold text-lg">{{ daily_meal_plan.daily_totals.protein }}g</div>
+                        <div class="text-gray-300">Protein</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-yellow-400 font-bold text-lg">{{ daily_meal_plan.daily_totals.carbs }}g</div>
+                        <div class="text-gray-300">Carbs</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-purple-400 font-bold text-lg">{{ daily_meal_plan.daily_totals.fat }}g</div>
+                        <div class="text-gray-300">Fat</div>
+                    </div>
+                </div>
+                <div class="mt-3 text-center">
+                    <div class="text-xs text-gray-400">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        This meal plan refreshes daily with new recommendations
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Add Section -->
+        <div class="dark-card rounded-2xl shadow-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-100">
+                    <i class="fas fa-bolt text-yellow-400 mr-2"></i>
+                    Quick Actions
+                </h3>
+            </div>
+
+            <div class="space-y-3">
+                <a href="{% url 'nutrition:food_search' %}" class="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 px-4 rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 transform hover:scale-105 flex items-center justify-center">
+                    <i class="fas fa-search mr-2"></i>Search Foods
+                </a>
+
+                <button onclick="addWater(500)" class="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-3 px-4 rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 transform hover:scale-105 flex items-center justify-center">
+                    <i class="fas fa-tint mr-2"></i>Add 500ml Water
+                </button>
+
+                <a href="{% url 'nutrition:meal_entries' %}" class="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-4 rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200 transform hover:scale-105 flex items-center justify-center">
+                    <i class="fas fa-utensils mr-2"></i>View Meals
+                </a>
+
+                <button onclick="showWaterReminderModal()" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-4 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-200 transform hover:scale-105 flex items-center justify-center">
+                    <i class="fas fa-bell mr-2"></i>Water Reminders
+                </button>
+            </div>
+
+            <!-- Today's Summary -->
+            <div class="mt-6 p-4 bg-gray-800 bg-opacity-50 rounded-lg border border-gray-600">
+                <h4 class="text-sm font-semibold text-gray-200 mb-3">
+                    <i class="fas fa-chart-line text-green-400 mr-2"></i>
+                    Today's Progress
+                </h4>
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between">
+                        <span class="text-gray-300">Calories:</span>
+                        <span class="text-orange-400 font-semibold">{{ total_calories|floatformat:0 }}/{{ calorie_goal|floatformat:0 }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-300">Water:</span>
+                        <span class="text-blue-400 font-semibold">{{ total_water|floatformat:0 }}/{{ water_goal|floatformat:0 }}ml</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-300">Meals:</span>
+                        <span class="text-green-400 font-semibold">{{ today_meals|length }} logged</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Today's Meals -->
+        <div class="dark-card rounded-2xl shadow-xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-100">
+                    <i class="fas fa-utensils text-green-400 mr-2"></i>
+                    Today's Meals
+                </h3>
+                <a href="{% url 'nutrition:food_search' %}" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                    <i class="fas fa-plus mr-1"></i>Add Food
+                </a>
+            </div>
+
+            {% if today_meals %}
+                <div class="space-y-3">
+                    {% for meal in today_meals %}
+                        <div class="border border-gray-600 rounded-lg p-3 bg-gray-800">
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="font-medium text-gray-100">{{ meal.meal_type|title }}</h4>
+                                <span class="text-sm text-gray-300">{{ meal.get_total_calories|floatformat:0 }} cal</span>
+                            </div>
+                            <div class="text-sm text-gray-400">
+                                {% for entry in meal.food_entries.all %}
+                                    <div>{{ entry.food_item.name }} ({{ entry.quantity }}g)</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-utensils text-gray-500 text-3xl mb-2"></i>
+                    <p class="text-gray-300">No meals logged today</p>
+                    <a href="{% url 'nutrition:food_search' %}" class="text-green-400 hover:text-green-300 text-sm">
+                        Start tracking your meals
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Macronutrient Breakdown -->
+        <div class="dark-card rounded-2xl shadow-xl p-6">
+            <h3 class="text-lg font-semibold text-gray-100 mb-4">
+                <i class="fas fa-chart-pie text-green-400 mr-2"></i>
+                Macronutrient Breakdown
+            </h3>
+            <div class="grid grid-cols-3 gap-4">
+                <div class="text-center">
+                    <div class="w-16 h-16 mx-auto mb-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-drumstick-bite text-white text-xl"></i>
+                    </div>
+                    <div class="text-sm font-medium text-gray-300">Protein</div>
+                    <div class="text-lg font-bold text-red-400">{{ total_protein|floatformat:1 }}g</div>
+                    <div class="text-xs text-gray-400">Goal: {{ protein_goal|floatformat:0 }}g</div>
+                    <div class="w-full bg-gray-700 rounded-full h-1 mt-1">
+                        <div class="bg-gradient-to-r from-red-500 to-pink-500 h-1 rounded-full" style="width: {{ protein_percentage }}%"></div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 mx-auto mb-2 bg-gradient-to-r from-yellow-500 to-orange-400 rounded-full flex items-center justify-center">
+                        <i class="fas fa-bread-slice text-white text-xl"></i>
+                    </div>
+                    <div class="text-sm font-medium text-gray-300">Carbs</div>
+                    <div class="text-lg font-bold text-yellow-400">{{ total_carbs|floatformat:1 }}g</div>
+                    <div class="text-xs text-gray-400">Goal: {{ carbs_goal|floatformat:0 }}g</div>
+                    <div class="w-full bg-gray-700 rounded-full h-1 mt-1">
+                        <div class="bg-gradient-to-r from-yellow-500 to-orange-400 h-1 rounded-full" style="width: {{ carbs_percentage }}%"></div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 mx-auto mb-2 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-cheese text-white text-xl"></i>
+                    </div>
+                    <div class="text-sm font-medium text-gray-300">Fat</div>
+                    <div class="text-lg font-bold text-purple-400">{{ total_fat|floatformat:1 }}g</div>
+                    <div class="text-xs text-gray-400">Goal: {{ fat_goal|floatformat:0 }}g</div>
+                    <div class="w-full bg-gray-700 rounded-full h-1 mt-1">
+                        <div class="bg-gradient-to-r from-purple-500 to-indigo-500 h-1 rounded-full" style="width: {{ fat_percentage }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Limit Tracker -->
+    <div class="dark-card rounded-2xl shadow-xl p-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-100 mb-6">
+            <i class="fas fa-chart-bar text-blue-400 mr-2"></i>
+            Daily Intake Limits
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Calories Limit Bar -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm font-medium text-gray-300">Calories</span>
+                    <span class="text-xs text-gray-400">{{ total_calories|floatformat:0 }}/{{ calorie_goal|floatformat:0 }}</span>
+                </div>
+                <div class="relative">
+                    <div class="w-full h-6 bg-gray-700 rounded-full overflow-hidden">
+                        <!-- Background zones -->
+                        <div class="absolute inset-0 flex">
+                            <div class="bg-green-600 opacity-30" style="width: 60%"></div>
+                            <div class="bg-yellow-500 opacity-30" style="width: 25%"></div>
+                            <div class="bg-red-500 opacity-30" style="width: 15%"></div>
+                        </div>
+                        <!-- Progress bar -->
+                        <div class="relative h-full transition-all duration-500 ease-out limit-bar-calories"
+                             style="width: {{ calorie_percentage }}%"
+                             data-percentage="{{ calorie_percentage }}">
+                        </div>
+                    </div>
+                    <!-- Zone indicators -->
+                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>0%</span>
+                        <span class="text-green-400">60%</span>
+                        <span class="text-yellow-400">85%</span>
+                        <span class="text-red-400">100%</span>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <span class="text-xs font-medium limit-status-calories">
+                        <!-- Status will be updated by JavaScript -->
+                    </span>
+                </div>
+            </div>
+
+            <!-- Protein Limit Bar -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm font-medium text-gray-300">Protein</span>
+                    <span class="text-xs text-gray-400">{{ total_protein|floatformat:1 }}g/{{ protein_goal|floatformat:0 }}g</span>
+                </div>
+                <div class="relative">
+                    <div class="w-full h-6 bg-gray-700 rounded-full overflow-hidden">
+                        <!-- Background zones -->
+                        <div class="absolute inset-0 flex">
+                            <div class="bg-green-600 opacity-30" style="width: 60%"></div>
+                            <div class="bg-yellow-500 opacity-30" style="width: 25%"></div>
+                            <div class="bg-red-500 opacity-30" style="width: 15%"></div>
+                        </div>
+                        <!-- Progress bar -->
+                        <div class="relative h-full transition-all duration-500 ease-out limit-bar-protein"
+                             style="width: {{ protein_percentage }}%"
+                             data-percentage="{{ protein_percentage }}">
+                        </div>
+                    </div>
+                    <!-- Zone indicators -->
+                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>0%</span>
+                        <span class="text-green-400">60%</span>
+                        <span class="text-yellow-400">85%</span>
+                        <span class="text-red-400">100%</span>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <span class="text-xs font-medium limit-status-protein">
+                        <!-- Status will be updated by JavaScript -->
+                    </span>
+                </div>
+            </div>
+
+            <!-- Carbs Limit Bar -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm font-medium text-gray-300">Carbs</span>
+                    <span class="text-xs text-gray-400">{{ total_carbs|floatformat:1 }}g/{{ carbs_goal|floatformat:0 }}g</span>
+                </div>
+                <div class="relative">
+                    <div class="w-full h-6 bg-gray-700 rounded-full overflow-hidden">
+                        <!-- Background zones -->
+                        <div class="absolute inset-0 flex">
+                            <div class="bg-green-600 opacity-30" style="width: 60%"></div>
+                            <div class="bg-yellow-500 opacity-30" style="width: 25%"></div>
+                            <div class="bg-red-500 opacity-30" style="width: 15%"></div>
+                        </div>
+                        <!-- Progress bar -->
+                        <div class="relative h-full transition-all duration-500 ease-out limit-bar-carbs"
+                             style="width: {{ carbs_percentage }}%"
+                             data-percentage="{{ carbs_percentage }}">
+                        </div>
+                    </div>
+                    <!-- Zone indicators -->
+                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>0%</span>
+                        <span class="text-green-400">60%</span>
+                        <span class="text-yellow-400">85%</span>
+                        <span class="text-red-400">100%</span>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <span class="text-xs font-medium limit-status-carbs">
+                        <!-- Status will be updated by JavaScript -->
+                    </span>
+                </div>
+            </div>
+
+            <!-- Fat Limit Bar -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm font-medium text-gray-300">Fat</span>
+                    <span class="text-xs text-gray-400">{{ total_fat|floatformat:1 }}g/{{ fat_goal|floatformat:0 }}g</span>
+                </div>
+                <div class="relative">
+                    <div class="w-full h-6 bg-gray-700 rounded-full overflow-hidden">
+                        <!-- Background zones -->
+                        <div class="absolute inset-0 flex">
+                            <div class="bg-green-600 opacity-30" style="width: 60%"></div>
+                            <div class="bg-yellow-500 opacity-30" style="width: 25%"></div>
+                            <div class="bg-red-500 opacity-30" style="width: 15%"></div>
+                        </div>
+                        <!-- Progress bar -->
+                        <div class="relative h-full transition-all duration-500 ease-out limit-bar-fat"
+                             style="width: {{ fat_percentage }}%"
+                             data-percentage="{{ fat_percentage }}">
+                        </div>
+                    </div>
+                    <!-- Zone indicators -->
+                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>0%</span>
+                        <span class="text-green-400">60%</span>
+                        <span class="text-yellow-400">85%</span>
+                        <span class="text-red-400">100%</span>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <span class="text-xs font-medium limit-status-fat">
+                        <!-- Status will be updated by JavaScript -->
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Limit Information -->
+        <div class="mt-6 p-4 bg-gray-800 rounded-lg border border-gray-600">
+            <h4 class="text-sm font-semibold text-gray-200 mb-3">
+                <i class="fas fa-info-circle text-blue-400 mr-2"></i>
+                Limit Zone Guide
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                    <span class="text-gray-300"><strong class="text-green-400">Safe Zone (0-60%):</strong> Optimal intake range</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                    <span class="text-gray-300"><strong class="text-yellow-400">Caution Zone (60-85%):</strong> Monitor intake carefully</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                    <span class="text-gray-300"><strong class="text-red-400">Limit Zone (85-100%+):</strong> Approaching/exceeding daily limit</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Insights -->
+    <div class="dark-card rounded-2xl shadow-xl p-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-100 mb-4">
+            <i class="fas fa-lightbulb text-yellow-400 mr-2"></i>
+            Daily Insights
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="bg-gradient-to-r from-green-900 to-green-800 p-4 rounded-lg border border-green-600">
+                <div class="flex items-center mb-2">
+                    <i class="fas fa-target text-green-400 mr-2"></i>
+                    <span class="font-medium text-green-200">Calorie Progress</span>
+                </div>
+                <div class="text-sm text-green-300">
+                    {% if calorie_percentage >= 90 %}
+                        🎯 Great job! You're on track with your calorie goal.
+                    {% elif calorie_percentage >= 70 %}
+                        📈 Good progress! Keep it up to reach your goal.
+                    {% elif calorie_percentage >= 50 %}
+                        💪 Halfway there! Add some nutritious meals.
+                    {% else %}
+                        🍽️ Time to fuel up! Don't forget to eat regularly.
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-blue-900 to-blue-800 p-4 rounded-lg border border-blue-600">
+                <div class="flex items-center mb-2">
+                    <i class="fas fa-tint text-blue-400 mr-2"></i>
+                    <span class="font-medium text-blue-200">Hydration Status</span>
+                </div>
+                <div class="text-sm text-blue-300">
+                    {% if water_percentage >= 100 %}
+                        💧 Excellent! You've met your hydration goal.
+                    {% elif water_percentage >= 75 %}
+                        🌊 Well hydrated! Just a bit more to go.
+                    {% elif water_percentage >= 50 %}
+                        💦 Good start! Keep drinking water regularly.
+                    {% else %}
+                        🚰 Remember to stay hydrated throughout the day.
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-purple-900 to-purple-800 p-4 rounded-lg border border-purple-600">
+                <div class="flex items-center mb-2">
+                    <i class="fas fa-balance-scale text-purple-400 mr-2"></i>
+                    <span class="font-medium text-purple-200">Macro Balance</span>
+                </div>
+                <div class="text-sm text-purple-300">
+                    {% if total_protein > 0 and total_carbs > 0 and total_fat > 0 %}
+                        ⚖️ Balanced nutrition! All macros are present.
+                    {% elif total_protein > 0 and total_carbs > 0 %}
+                        🥗 Good protein and carbs! Consider adding healthy fats.
+                    {% elif total_protein > 0 %}
+                        🥩 Good protein intake! Add carbs and fats for balance.
+                    {% else %}
+                        📊 Start logging meals to track your macro balance.
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-bolt text-yellow-500 mr-2"></i>
+            Quick Actions
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="{% url 'nutrition:food_search' %}" class="bg-green-100 hover:bg-green-200 p-4 rounded-lg text-center transition duration-200">
+                <i class="fas fa-search text-green-600 text-2xl mb-2"></i>
+                <div class="text-sm font-medium">Search Foods</div>
+            </a>
+            <a href="{% url 'nutrition:meal_entries' %}" class="bg-orange-100 hover:bg-orange-200 p-4 rounded-lg text-center transition duration-200">
+                <i class="fas fa-utensils text-orange-600 text-2xl mb-2"></i>
+                <div class="text-sm font-medium">View Meals</div>
+            </a>
+            <button onclick="addWater(500)" class="bg-cyan-100 hover:bg-cyan-200 p-4 rounded-lg text-center transition duration-200">
+                <i class="fas fa-tint text-cyan-600 text-2xl mb-2"></i>
+                <div class="text-sm font-medium">Add Water</div>
+            </button>
+            <button onclick="showWaterReminderModal()" class="bg-red-100 hover:bg-red-200 p-4 rounded-lg text-center transition duration-200">
+                <i class="fas fa-bell text-red-600 text-2xl mb-2"></i>
+                <div class="text-sm font-medium">Water Reminders</div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Nutrition Tips -->
+    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg shadow-md p-6 mt-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-star text-indigo-600 mr-2"></i>
+            Daily Nutrition Tips
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white p-4 rounded-lg shadow-sm">
+                <h4 class="font-medium text-indigo-800 mb-2">💡 Tip of the Day</h4>
+                <p class="text-sm text-gray-700" id="dailyTip">
+                    Eating protein with every meal helps maintain stable blood sugar levels and keeps you feeling full longer.
+                </p>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-sm">
+                <h4 class="font-medium text-purple-800 mb-2">🎯 Today's Focus</h4>
+                <p class="text-sm text-gray-700" id="todaysFocus">
+                    {% if water_percentage < 50 %}
+                        Focus on increasing your water intake. Aim for a glass of water every hour.
+                    {% elif total_protein < 50 %}
+                        Try to include more protein-rich foods like lean meats, eggs, or legumes.
+                    {% elif total_carbs < 100 %}
+                        Add some healthy carbs like fruits, vegetables, or whole grains to your meals.
+                    {% else %}
+                        Great job maintaining balanced nutrition! Keep up the good work.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Water Modal -->
+<div id="waterModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-tint text-blue-500 mr-2"></i>Add Water Intake
+        </h3>
+        <div class="mb-4">
+            <label for="waterAmount" class="block text-sm font-medium text-gray-700 mb-2">Amount (ml)</label>
+            <input type="number" id="waterAmount" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter amount in ml" min="1" max="2000">
+        </div>
+        <div class="flex gap-3">
+            <button onclick="closeWaterModal()" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition duration-200">
+                Cancel
+            </button>
+            <button onclick="addCustomWater()" class="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200">
+                <i class="fas fa-plus mr-2"></i>Add Water
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Water Reminder Notification -->
+<div id="waterReminderNotification" class="fixed top-4 right-4 bg-blue-500 text-white p-4 rounded-lg shadow-lg hidden z-50 max-w-sm">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center">
+            <i class="fas fa-tint text-xl mr-3"></i>
+            <div>
+                <div class="font-semibold">Water Reminder!</div>
+                <div class="text-sm">Time to drink some water 💧</div>
+            </div>
+        </div>
+        <button onclick="dismissWaterReminder()" class="ml-3 text-white hover:text-gray-200">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="mt-3 flex gap-2">
+        <button onclick="quickAddWater(250)" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm">
+            Add 250ml
+        </button>
+        <button onclick="quickAddWater(500)" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm">
+            Add 500ml
+        </button>
+        <button onclick="showWaterModal(); dismissWaterReminder();" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm">
+            Custom
+        </button>
+    </div>
+</div>
+
+<!-- Water Reminder Settings Modal -->
+<div id="waterReminderModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-bell text-blue-500 mr-2"></i>Water Reminder Settings
+        </h3>
+        <div class="space-y-4">
+            <div>
+                <label class="flex items-center">
+                    <input type="checkbox" id="enableWaterReminders" class="mr-2" onchange="toggleWaterReminders()">
+                    <span>Enable water reminders</span>
+                </label>
+            </div>
+            <div>
+                <label for="reminderInterval" class="block text-sm font-medium text-gray-700 mb-2">
+                    Reminder Interval
+                </label>
+                <select id="reminderInterval" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="updateReminderInterval()">
+                    <option value="60">Every 1 hour</option>
+                    <option value="120" selected>Every 2 hours</option>
+                    <option value="180">Every 3 hours</option>
+                    <option value="240">Every 4 hours</option>
+                </select>
+            </div>
+            <div>
+                <label for="reminderStartTime" class="block text-sm font-medium text-gray-700 mb-2">
+                    Start Time
+                </label>
+                <input type="time" id="reminderStartTime" value="08:00" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label for="reminderEndTime" class="block text-sm font-medium text-gray-700 mb-2">
+                    End Time
+                </label>
+                <input type="time" id="reminderEndTime" value="22:00" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="flex items-center">
+                    <input type="checkbox" id="enableBrowserNotifications" class="mr-2" onchange="toggleBrowserNotifications()">
+                    <span>Enable browser notifications</span>
+                </label>
+                <p class="text-xs text-gray-500 mt-1">You'll need to allow notifications in your browser</p>
+            </div>
+            <div>
+                <label class="flex items-center">
+                    <input type="checkbox" id="enableSoundNotifications" class="mr-2">
+                    <span>Play notification sound</span>
+                </label>
+            </div>
+            <div>
+                <label for="reminderMessage" class="block text-sm font-medium text-gray-700 mb-2">
+                    Custom Reminder Message
+                </label>
+                <input type="text" id="reminderMessage" placeholder="Time to drink some water!" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="flex items-center">
+                    <input type="checkbox" id="enableWeekendReminders" class="mr-2">
+                    <span>Enable reminders on weekends</span>
+                </label>
+            </div>
+        </div>
+        <div class="flex gap-3 mt-6">
+            <button onclick="closeWaterReminderModal()" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition duration-200">
+                Cancel
+            </button>
+            <button onclick="saveWaterReminderSettings()" class="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200">
+                Save Settings
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Meal Plan Edit Modal -->
+<div id="mealPlanEditModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-gray-800 rounded-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold text-gray-100">
+                <i class="fas fa-edit text-blue-400 mr-2"></i>
+                Customize Meal Plan
+            </h3>
+            <button onclick="closeMealPlanModal()" class="text-gray-400 hover:text-gray-200 transition-colors duration-200">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Meal Type Tabs -->
+        <div class="flex space-x-2 mb-6 bg-gray-700 p-1 rounded-lg">
+            <button onclick="switchMealTab('breakfast')" id="tab-breakfast" class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 meal-tab active">
+                <i class="fas fa-sun mr-2"></i>Breakfast
+            </button>
+            <button onclick="switchMealTab('lunch')" id="tab-lunch" class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 meal-tab">
+                <i class="fas fa-sun mr-2"></i>Lunch
+            </button>
+            <button onclick="switchMealTab('dinner')" id="tab-dinner" class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 meal-tab">
+                <i class="fas fa-moon mr-2"></i>Dinner
+            </button>
+            <button onclick="switchMealTab('snacks')" id="tab-snacks" class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 meal-tab">
+                <i class="fas fa-cookie-bite mr-2"></i>Snacks
+            </button>
+        </div>
+
+        <!-- Meal Options Content -->
+        <div id="meal-options-content">
+            <!-- Content will be populated by JavaScript -->
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-3 mt-6">
+            <button onclick="saveMealPlan()" class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition duration-200 font-medium">
+                <i class="fas fa-save mr-2"></i>Save Changes
+            </button>
+            <button onclick="resetToDefault()" class="flex-1 bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 transition duration-200 font-medium">
+                <i class="fas fa-undo mr-2"></i>Reset to Default
+            </button>
+            <button onclick="closeMealPlanModal()" class="flex-1 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition duration-200 font-medium">
+                <i class="fas fa-times mr-2"></i>Cancel
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Quick action functions
+function addWater(amount) {
+    // Make AJAX call to log water intake
+    fetch('/nutrition/api/water/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            amount_ml: amount,
+            date: new Date().toISOString()
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(`Added ${amount}ml of water!`, 'success');
+            // Update the water display
+            updateWaterDisplay(data.total_water, data.water_goal, data.percentage);
+        } else {
+            showAlert('Failed to add water: ' + (data.error || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error adding water:', error);
+        showAlert('Failed to add water. Please try again.', 'error');
+    });
+}
+
+function updateWaterDisplay(totalWater, waterGoal, percentage) {
+    // Update the water intake display
+    const waterAmountEl = document.querySelector('.text-3xl.font-bold.text-blue-600');
+    const waterProgressEl = document.querySelector('.bg-blue-500.h-4.rounded-full');
+
+    if (waterAmountEl) {
+        waterAmountEl.textContent = Math.round(totalWater) + 'ml';
+    }
+
+    if (waterProgressEl) {
+        waterProgressEl.style.width = Math.min(percentage, 100) + '%';
+    }
+
+    // Update entries count display if it exists
+    const entriesCountEl = document.querySelector('.text-xs.text-gray-500');
+    if (entriesCountEl && totalWater === 0) {
+        entriesCountEl.style.display = 'none';
+    }
+}
+
+// Function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Show alert function
+function showAlert(message, type = 'info') {
+    // Create alert element
+    const alert = document.createElement('div');
+    alert.className = `fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg text-white max-w-md`;
+
+    // Set color based on type
+    switch(type) {
+        case 'success':
+            alert.className += ' bg-green-500';
+            break;
+        case 'error':
+            alert.className += ' bg-red-500';
+            break;
+        case 'warning':
+            alert.className += ' bg-yellow-500';
+            break;
+        default:
+            alert.className += ' bg-blue-500';
+    }
+
+    alert.textContent = message;
+    document.body.appendChild(alert);
+
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.parentNode.removeChild(alert);
+        }
+    }, 3000);
+}
+
+function showWaterModal() {
+    document.getElementById('waterModal').classList.remove('hidden');
+    document.getElementById('waterAmount').focus();
+}
+
+function closeWaterModal() {
+    document.getElementById('waterModal').classList.add('hidden');
+    document.getElementById('waterAmount').value = '';
+}
+
+function addCustomWater() {
+    const amount = parseInt(document.getElementById('waterAmount').value);
+    if (amount && amount > 0 && amount <= 2000) {
+        addWater(amount);
+        closeWaterModal();
+    } else {
+        showAlert('Please enter a valid amount between 1 and 2000 ml', 'error');
+    }
+}
+
+function resetDailyWater() {
+    if (confirm('Are you sure you want to reset today\'s water intake? This will remove all water entries for today.')) {
+        fetch('/nutrition/api/water/', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                action: 'reset_daily',
+                date: new Date().toISOString().split('T')[0]
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message || 'Daily water intake reset successfully!', 'success');
+                // Update the water display
+                updateWaterDisplay(data.total_water, {{ water_goal }}, data.percentage);
+                // Reload the page to update the reset button visibility
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showAlert('Failed to reset water intake: ' + (data.error || 'Unknown error'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error resetting water intake:', error);
+            showAlert('Failed to reset water intake. Please try again.', 'error');
+        });
+    }
+}
+
+function logWorkout() {
+    // This would open a workout logging modal
+    showAlert('Workout logging feature coming soon!', 'info');
+    // TODO: Implement workout logging
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('waterModal');
+    if (event.target === modal) {
+        closeWaterModal();
+    }
+});
+
+// Handle Enter key in water amount input
+document.addEventListener('DOMContentLoaded', function() {
+    const waterAmountInput = document.getElementById('waterAmount');
+    if (waterAmountInput) {
+        waterAmountInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                addCustomWater();
+            }
+        });
+    }
+});
+
+// ===== WATER REMINDER SYSTEM =====
+let waterReminderInterval = null;
+let waterReminderSettings = {
+    enabled: false,
+    intervalMinutes: 120, // 2 hours
+    startTime: '08:00',
+    endTime: '22:00',
+    browserNotifications: false,
+    soundNotifications: false,
+    customMessage: 'Time to drink some water!',
+    weekendReminders: true
+};
+
+// Load settings from localStorage
+function loadWaterReminderSettings() {
+    const saved = localStorage.getItem('waterReminderSettings');
+    if (saved) {
+        waterReminderSettings = { ...waterReminderSettings, ...JSON.parse(saved) };
+    }
+
+    // Update UI
+    document.getElementById('enableWaterReminders').checked = waterReminderSettings.enabled;
+    document.getElementById('reminderInterval').value = waterReminderSettings.intervalMinutes;
+    document.getElementById('reminderStartTime').value = waterReminderSettings.startTime;
+    document.getElementById('reminderEndTime').value = waterReminderSettings.endTime;
+    document.getElementById('enableBrowserNotifications').checked = waterReminderSettings.browserNotifications;
+    document.getElementById('enableSoundNotifications').checked = waterReminderSettings.soundNotifications;
+    document.getElementById('reminderMessage').value = waterReminderSettings.customMessage;
+    document.getElementById('enableWeekendReminders').checked = waterReminderSettings.weekendReminders;
+
+    // Start reminders if enabled
+    if (waterReminderSettings.enabled) {
+        startWaterReminders();
+    }
+}
+
+// Save settings to localStorage
+function saveWaterReminderSettings() {
+    waterReminderSettings.enabled = document.getElementById('enableWaterReminders').checked;
+    waterReminderSettings.intervalMinutes = parseInt(document.getElementById('reminderInterval').value);
+    waterReminderSettings.startTime = document.getElementById('reminderStartTime').value;
+    waterReminderSettings.endTime = document.getElementById('reminderEndTime').value;
+    waterReminderSettings.browserNotifications = document.getElementById('enableBrowserNotifications').checked;
+    waterReminderSettings.soundNotifications = document.getElementById('enableSoundNotifications').checked;
+    waterReminderSettings.customMessage = document.getElementById('reminderMessage').value || 'Time to drink some water!';
+    waterReminderSettings.weekendReminders = document.getElementById('enableWeekendReminders').checked;
+
+    localStorage.setItem('waterReminderSettings', JSON.stringify(waterReminderSettings));
+
+    // Restart reminders with new settings
+    stopWaterReminders();
+    if (waterReminderSettings.enabled) {
+        startWaterReminders();
+    }
+
+    closeWaterReminderModal();
+    updateReminderStatusIndicator();
+    showAlert('Water reminder settings saved!', 'success');
+}
+
+// Start water reminders
+function startWaterReminders() {
+    if (waterReminderInterval) {
+        clearInterval(waterReminderInterval);
+    }
+
+    // Check immediately, then set interval
+    checkWaterReminderTime();
+    waterReminderInterval = setInterval(checkWaterReminderTime, 60000); // Check every minute
+}
+
+// Stop water reminders
+function stopWaterReminders() {
+    if (waterReminderInterval) {
+        clearInterval(waterReminderInterval);
+        waterReminderInterval = null;
+    }
+}
+
+// Check if it's time for a water reminder
+function checkWaterReminderTime() {
+    if (!waterReminderSettings.enabled) return;
+
+    const now = new Date();
+    const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+    // Check if current time is within reminder hours
+    if (currentTime < waterReminderSettings.startTime || currentTime > waterReminderSettings.endTime) {
+        return;
+    }
+
+    // Check if weekend reminders are disabled and it's weekend
+    const isWeekend = now.getDay() === 0 || now.getDay() === 6; // Sunday = 0, Saturday = 6
+    if (isWeekend && !waterReminderSettings.weekendReminders) {
+        return;
+    }
+
+    // Check if it's time for a reminder (every X minutes)
+    const lastReminder = localStorage.getItem('lastWaterReminder');
+    const lastReminderTime = lastReminder ? new Date(lastReminder) : new Date(0);
+    const timeSinceLastReminder = now - lastReminderTime;
+    const intervalMs = waterReminderSettings.intervalMinutes * 60 * 1000;
+
+    if (timeSinceLastReminder >= intervalMs) {
+        showWaterReminder();
+        localStorage.setItem('lastWaterReminder', now.toISOString());
+    }
+}
+
+// Show water reminder notification
+function showWaterReminder() {
+    // Update notification message
+    const notification = document.getElementById('waterReminderNotification');
+    const messageElement = notification.querySelector('.text-sm');
+    messageElement.textContent = waterReminderSettings.customMessage + ' 💧';
+
+    // Show in-app notification
+    notification.classList.remove('hidden');
+
+    // Auto-hide after 10 seconds
+    setTimeout(() => {
+        if (!notification.classList.contains('hidden')) {
+            dismissWaterReminder();
+        }
+    }, 10000);
+
+    // Play notification sound if enabled
+    if (waterReminderSettings.soundNotifications) {
+        playNotificationSound();
+    }
+
+    // Show browser notification if enabled
+    if (waterReminderSettings.browserNotifications && 'Notification' in window && Notification.permission === 'granted') {
+        new Notification('Water Reminder! 💧', {
+            body: waterReminderSettings.customMessage,
+            icon: '/static/images/water-icon.png', // You can add an icon
+            tag: 'water-reminder'
+        });
+    }
+
+    // Update water streak
+    updateWaterStreak();
+}
+
+// Dismiss water reminder
+function dismissWaterReminder() {
+    document.getElementById('waterReminderNotification').classList.add('hidden');
+}
+
+// Quick add water from reminder
+function quickAddWater(amount) {
+    addWater(amount);
+    dismissWaterReminder();
+}
+
+// Toggle water reminders
+function toggleWaterReminders() {
+    const enabled = document.getElementById('enableWaterReminders').checked;
+    if (enabled) {
+        startWaterReminders();
+    } else {
+        stopWaterReminders();
+    }
+}
+
+// Update reminder interval
+function updateReminderInterval() {
+    // Settings will be saved when user clicks save
+}
+
+// Toggle browser notifications
+function toggleBrowserNotifications() {
+    const enabled = document.getElementById('enableBrowserNotifications').checked;
+    if (enabled && 'Notification' in window) {
+        if (Notification.permission === 'default') {
+            Notification.requestPermission().then(permission => {
+                if (permission !== 'granted') {
+                    document.getElementById('enableBrowserNotifications').checked = false;
+                    showAlert('Browser notifications permission denied', 'error');
+                }
+            });
+        } else if (Notification.permission === 'denied') {
+            document.getElementById('enableBrowserNotifications').checked = false;
+            showAlert('Browser notifications are blocked. Please enable them in your browser settings.', 'error');
+        }
+    }
+}
+
+// Show water reminder modal
+function showWaterReminderModal() {
+    document.getElementById('waterReminderModal').classList.remove('hidden');
+}
+
+// Close water reminder modal
+function closeWaterReminderModal() {
+    document.getElementById('waterReminderModal').classList.add('hidden');
+}
+
+// Play notification sound
+function playNotificationSound() {
+    // Create audio context for notification sound
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
+
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (error) {
+        console.log('Audio notification not supported');
+    }
+}
+
+// Update water streak counter
+function updateWaterStreak() {
+    const today = new Date().toDateString();
+    const lastWaterDate = localStorage.getItem('lastWaterDate');
+    const currentStreak = parseInt(localStorage.getItem('waterStreak') || '0');
+
+    if (lastWaterDate !== today) {
+        // Check if yesterday was the last water date
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        if (lastWaterDate === yesterday.toDateString()) {
+            // Continue streak
+            const newStreak = currentStreak + 1;
+            localStorage.setItem('waterStreak', newStreak.toString());
+            localStorage.setItem('lastWaterDate', today);
+            displayWaterStreak(newStreak);
+        } else if (lastWaterDate === null || lastWaterDate === undefined) {
+            // Start new streak
+            localStorage.setItem('waterStreak', '1');
+            localStorage.setItem('lastWaterDate', today);
+            displayWaterStreak(1);
+        } else {
+            // Reset streak
+            localStorage.setItem('waterStreak', '1');
+            localStorage.setItem('lastWaterDate', today);
+            displayWaterStreak(1);
+        }
+    } else {
+        // Same day, show current streak
+        displayWaterStreak(currentStreak);
+    }
+}
+
+// Display water streak
+function displayWaterStreak(streak) {
+    const streakElement = document.getElementById('waterStreak');
+    const streakCount = document.getElementById('streakCount');
+
+    if (streak > 0) {
+        streakCount.textContent = streak;
+        streakElement.classList.remove('hidden');
+    } else {
+        streakElement.classList.add('hidden');
+    }
+}
+
+// Update reminder status indicator
+function updateReminderStatusIndicator() {
+    const statusDot = document.getElementById('reminderStatusDot');
+    if (waterReminderSettings.enabled) {
+        statusDot.classList.remove('hidden', 'bg-gray-400');
+        statusDot.classList.add('bg-green-500');
+        statusDot.title = 'Water reminders are active';
+    } else {
+        statusDot.classList.remove('hidden', 'bg-green-500');
+        statusDot.classList.add('bg-gray-400');
+        statusDot.title = 'Water reminders are disabled';
+    }
+}
+
+// Daily nutrition tips
+const nutritionTips = [
+    "Eating protein with every meal helps maintain stable blood sugar levels and keeps you feeling full longer.",
+    "Drinking water before meals can help with portion control and digestion.",
+    "Include colorful fruits and vegetables in your diet for a variety of vitamins and antioxidants.",
+    "Healthy fats like avocados, nuts, and olive oil support brain function and nutrient absorption.",
+    "Eating slowly and mindfully can help you recognize when you're full and prevent overeating.",
+    "Fiber-rich foods like whole grains and legumes promote digestive health and satiety.",
+    "Planning your meals ahead of time can help you make healthier food choices.",
+    "Small, frequent meals throughout the day can help maintain steady energy levels."
+];
+
+// Rotate daily tip based on day of year
+function updateDailyTip() {
+    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+    const tipIndex = dayOfYear % nutritionTips.length;
+    const tipElement = document.getElementById('dailyTip');
+    if (tipElement) {
+        tipElement.textContent = nutritionTips[tipIndex];
+    }
+}
+
+// Update current time
+function updateCurrentTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+    const timeElement = document.getElementById('current-time');
+    if (timeElement) {
+        timeElement.textContent = timeString;
+    }
+}
+
+// Update limit bars with dynamic colors and status
+function updateLimitBars() {
+    const nutrients = ['calories', 'protein', 'carbs', 'fat'];
+
+    nutrients.forEach(nutrient => {
+        const bar = document.querySelector(`.limit-bar-${nutrient}`);
+        const status = document.querySelector(`.limit-status-${nutrient}`);
+
+        if (bar && status) {
+            const percentage = parseFloat(bar.dataset.percentage) || 0;
+
+            // Determine color and status based on percentage
+            let color, bgColor, statusText, statusColor;
+
+            if (percentage <= 60) {
+                // Green zone - Safe
+                color = 'bg-gradient-to-r from-green-500 to-green-600';
+                bgColor = 'bg-green-500';
+                statusText = '✅ Safe Zone';
+                statusColor = 'text-green-400';
+            } else if (percentage <= 85) {
+                // Yellow zone - Caution
+                color = 'bg-gradient-to-r from-yellow-500 to-orange-500';
+                bgColor = 'bg-yellow-500';
+                statusText = '⚠️ Caution Zone';
+                statusColor = 'text-yellow-400';
+            } else if (percentage <= 100) {
+                // Red zone - Limit approaching
+                color = 'bg-gradient-to-r from-red-500 to-red-600';
+                bgColor = 'bg-red-500';
+                statusText = '🚨 Limit Zone';
+                statusColor = 'text-red-400';
+            } else {
+                // Over limit
+                color = 'bg-gradient-to-r from-red-600 to-red-700';
+                bgColor = 'bg-red-600';
+                statusText = '🔴 Over Limit!';
+                statusColor = 'text-red-500';
+            }
+
+            // Update bar color
+            bar.className = `relative h-full transition-all duration-500 ease-out limit-bar-${nutrient} ${color}`;
+
+            // Update status text
+            status.textContent = statusText;
+            status.className = `text-xs font-medium limit-status-${nutrient} ${statusColor}`;
+
+            // Add pulsing animation for over limit
+            if (percentage > 100) {
+                bar.classList.add('animate-pulse');
+            } else {
+                bar.classList.remove('animate-pulse');
+            }
+        }
+    });
+}
+
+// Add warning notifications for limits
+function checkLimitWarnings() {
+    const nutrients = [
+        { name: 'calories', percentage: parseFloat(document.querySelector('.limit-bar-calories')?.dataset.percentage) || 0 },
+        { name: 'protein', percentage: parseFloat(document.querySelector('.limit-bar-protein')?.dataset.percentage) || 0 },
+        { name: 'carbs', percentage: parseFloat(document.querySelector('.limit-bar-carbs')?.dataset.percentage) || 0 },
+        { name: 'fat', percentage: parseFloat(document.querySelector('.limit-bar-fat')?.dataset.percentage) || 0 }
+    ];
+
+    nutrients.forEach(nutrient => {
+        if (nutrient.percentage > 100) {
+            // Show warning for exceeded limits
+            console.log(`Warning: ${nutrient.name} limit exceeded (${nutrient.percentage.toFixed(1)}%)`);
+        } else if (nutrient.percentage > 85) {
+            // Show caution for approaching limits
+            console.log(`Caution: ${nutrient.name} approaching limit (${nutrient.percentage.toFixed(1)}%)`);
+        }
+    });
+}
+
+// ===== MEAL PLAN EDITING SYSTEM =====
+let currentMealTab = 'breakfast';
+let mealPlanData = {
+    breakfast: {{ daily_meal_plan.breakfast|safe }},
+    lunch: {{ daily_meal_plan.lunch|safe }},
+    dinner: {{ daily_meal_plan.dinner|safe }},
+    snacks: {{ daily_meal_plan.snacks|safe }}
+};
+
+// All available meal options (from backend)
+const allMealOptions = {
+    breakfast: [
+        {
+            name: 'Oatmeal Power Bowl',
+            items: [
+                {name: 'Steel-cut oats with blueberries', calories: 320, protein: 12, carbs: 58, fat: 6},
+                {name: 'Greek yogurt with honey', calories: 150, protein: 15, carbs: 20, fat: 3},
+                {name: 'Almonds (handful)', calories: 160, protein: 6, carbs: 6, fat: 14}
+            ]
+        },
+        {
+            name: 'Protein Breakfast',
+            items: [
+                {name: 'Scrambled eggs (2 large)', calories: 180, protein: 12, carbs: 2, fat: 14},
+                {name: 'Whole grain toast', calories: 120, protein: 4, carbs: 22, fat: 2},
+                {name: 'Avocado (half)', calories: 160, protein: 2, carbs: 9, fat: 15},
+                {name: 'Orange juice (small)', calories: 80, protein: 1, carbs: 20, fat: 0}
+            ]
+        },
+        {
+            name: 'Smoothie Bowl',
+            items: [
+                {name: 'Banana protein smoothie', calories: 280, protein: 25, carbs: 35, fat: 8},
+                {name: 'Granola topping', calories: 150, protein: 4, carbs: 25, fat: 6},
+                {name: 'Fresh berries', calories: 60, protein: 1, carbs: 15, fat: 0}
+            ]
+        }
+    ],
+    lunch: [
+        {
+            name: 'Mediterranean Bowl',
+            items: [
+                {name: 'Grilled chicken breast', calories: 350, protein: 35, carbs: 0, fat: 8},
+                {name: 'Quinoa salad with vegetables', calories: 280, protein: 10, carbs: 45, fat: 8},
+                {name: 'Hummus with pita', calories: 180, protein: 8, carbs: 20, fat: 8},
+                {name: 'Mixed greens', calories: 40, protein: 2, carbs: 8, fat: 0}
+            ]
+        },
+        {
+            name: 'Asian Fusion',
+            items: [
+                {name: 'Teriyaki salmon', calories: 320, protein: 28, carbs: 12, fat: 18},
+                {name: 'Brown rice', calories: 220, protein: 5, carbs: 45, fat: 2},
+                {name: 'Steamed vegetables', calories: 80, protein: 3, carbs: 16, fat: 1},
+                {name: 'Miso soup', calories: 60, protein: 4, carbs: 8, fat: 2}
+            ]
+        },
+        {
+            name: 'Power Salad',
+            items: [
+                {name: 'Mixed greens with chickpeas', calories: 200, protein: 12, carbs: 30, fat: 4},
+                {name: 'Grilled turkey breast', calories: 250, protein: 30, carbs: 0, fat: 8},
+                {name: 'Sweet potato cubes', calories: 180, protein: 2, carbs: 40, fat: 1},
+                {name: 'Olive oil dressing', calories: 120, protein: 0, carbs: 2, fat: 14}
+            ]
+        }
+    ],
+    dinner: [
+        {
+            name: 'Lean & Green',
+            items: [
+                {name: 'Baked cod with herbs', calories: 300, protein: 35, carbs: 2, fat: 8},
+                {name: 'Roasted Brussels sprouts', calories: 120, protein: 4, carbs: 20, fat: 4},
+                {name: 'Wild rice pilaf', calories: 200, protein: 6, carbs: 40, fat: 2},
+                {name: 'Side salad', calories: 80, protein: 2, carbs: 12, fat: 3}
+            ]
+        },
+        {
+            name: 'Comfort Classic',
+            items: [
+                {name: 'Lean beef stir-fry', calories: 320, protein: 28, carbs: 15, fat: 16},
+                {name: 'Steamed broccoli', calories: 60, protein: 4, carbs: 12, fat: 1},
+                {name: 'Quinoa', calories: 180, protein: 6, carbs: 32, fat: 3},
+                {name: 'Green tea', calories: 5, protein: 0, carbs: 1, fat: 0}
+            ]
+        },
+        {
+            name: 'Plant Power',
+            items: [
+                {name: 'Lentil and vegetable curry', calories: 280, protein: 18, carbs: 45, fat: 6},
+                {name: 'Brown rice', calories: 180, protein: 4, carbs: 36, fat: 2},
+                {name: 'Naan bread (small)', calories: 150, protein: 5, carbs: 28, fat: 3},
+                {name: 'Cucumber raita', calories: 80, protein: 4, carbs: 8, fat: 4}
+            ]
+        }
+    ],
+    snacks: [
+        {
+            name: 'Energy Boost',
+            items: [
+                {name: 'Apple with almond butter', calories: 190, protein: 4, carbs: 25, fat: 8},
+                {name: 'Green tea', calories: 5, protein: 0, carbs: 1, fat: 0}
+            ]
+        },
+        {
+            name: 'Protein Pack',
+            items: [
+                {name: 'Greek yogurt parfait', calories: 180, protein: 15, carbs: 20, fat: 6},
+                {name: 'Mixed berries', calories: 60, protein: 1, carbs: 15, fat: 0}
+            ]
+        },
+        {
+            name: 'Healthy Crunch',
+            items: [
+                {name: 'Hummus with vegetables', calories: 120, protein: 6, carbs: 15, fat: 5},
+                {name: 'Whole grain crackers', calories: 80, protein: 2, carbs: 16, fat: 2}
+            ]
+        }
+    ]
+};
+
+// Show meal plan edit modal
+function editMealPlan() {
+    document.getElementById('mealPlanEditModal').classList.remove('hidden');
+    switchMealTab('breakfast');
+}
+
+// Edit specific meal
+function editMeal(mealType) {
+    document.getElementById('mealPlanEditModal').classList.remove('hidden');
+    switchMealTab(mealType);
+}
+
+// Close meal plan modal
+function closeMealPlanModal() {
+    document.getElementById('mealPlanEditModal').classList.add('hidden');
+}
+
+// Switch meal tab
+function switchMealTab(mealType) {
+    currentMealTab = mealType;
+
+    // Update tab appearance
+    document.querySelectorAll('.meal-tab').forEach(tab => {
+        tab.classList.remove('active', 'bg-blue-600', 'text-white');
+        tab.classList.add('text-gray-300', 'hover:text-white');
+    });
+
+    const activeTab = document.getElementById(`tab-${mealType}`);
+    activeTab.classList.add('active', 'bg-blue-600', 'text-white');
+    activeTab.classList.remove('text-gray-300', 'hover:text-white');
+
+    // Load meal options
+    loadMealOptions(mealType);
+}
+
+// Load meal options for current tab
+function loadMealOptions(mealType) {
+    const container = document.getElementById('meal-options-content');
+    const options = allMealOptions[mealType];
+    const currentSelection = mealPlanData[mealType].name;
+
+    let html = `
+        <div class="space-y-4">
+            <h4 class="text-lg font-semibold text-gray-200 mb-4">Choose your ${mealType}:</h4>
+    `;
+
+    options.forEach((option, index) => {
+        const isSelected = option.name === currentSelection;
+        const totals = calculateMealTotals(option);
+
+        html += `
+            <div class="meal-option ${isSelected ? 'selected' : ''} border-2 ${isSelected ? 'border-blue-500 bg-blue-900 bg-opacity-30' : 'border-gray-600 hover:border-gray-500'} rounded-lg p-4 cursor-pointer transition-all duration-200" onclick="selectMealOption('${mealType}', ${index})">
+                <div class="flex items-center justify-between mb-3">
+                    <h5 class="font-semibold text-gray-100">${option.name}</h5>
+                    <div class="flex items-center">
+                        ${isSelected ? '<i class="fas fa-check-circle text-blue-400 mr-2"></i>' : ''}
+                        <span class="text-sm text-gray-400">${totals.calories} cal</span>
+                    </div>
+                </div>
+                <div class="space-y-1 text-sm text-gray-300 mb-3">
+        `;
+
+        option.items.forEach(item => {
+            html += `
+                <div class="flex items-center">
+                    <i class="fas fa-circle text-xs mr-2 opacity-50"></i>
+                    <span>${item.name} (${item.calories} cal)</span>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+                <div class="text-xs text-gray-400 border-t border-gray-600 pt-2">
+                    <strong>Totals:</strong> ${totals.calories} cal | Protein: ${totals.protein}g | Carbs: ${totals.carbs}g | Fat: ${totals.fat}g
+                </div>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// Select meal option
+function selectMealOption(mealType, optionIndex) {
+    const selectedOption = allMealOptions[mealType][optionIndex];
+    mealPlanData[mealType] = {
+        ...selectedOption,
+        totals: calculateMealTotals(selectedOption)
+    };
+
+    // Refresh the display
+    loadMealOptions(mealType);
+}
+
+// Calculate meal totals
+function calculateMealTotals(meal) {
+    return {
+        calories: meal.items.reduce((sum, item) => sum + item.calories, 0),
+        protein: meal.items.reduce((sum, item) => sum + item.protein, 0),
+        carbs: meal.items.reduce((sum, item) => sum + item.carbs, 0),
+        fat: meal.items.reduce((sum, item) => sum + item.fat, 0)
+    };
+}
+
+// Save meal plan
+function saveMealPlan() {
+    // Save to localStorage for persistence
+    localStorage.setItem('customMealPlan', JSON.stringify(mealPlanData));
+    localStorage.setItem('mealPlanDate', new Date().toDateString());
+
+    showAlert('Meal plan saved successfully! Refreshing page...', 'success');
+
+    // Refresh page to show updated meal plan
+    setTimeout(() => {
+        window.location.reload();
+    }, 1500);
+}
+
+// Reset to default meal plan
+function resetToDefault() {
+    if (confirm('Are you sure you want to reset to the default meal plan? This will remove all your customizations.')) {
+        localStorage.removeItem('customMealPlan');
+        localStorage.removeItem('mealPlanDate');
+
+        showAlert('Meal plan reset to default! Refreshing page...', 'success');
+
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+    }
+}
+
+// Toggle meal details view
+function toggleMealDetails() {
+    const condensedViews = document.querySelectorAll('.meal-condensed');
+    const detailedViews = document.querySelectorAll('.meal-detailed');
+    const toggleBtn = document.getElementById('meal-toggle-btn');
+    const toggleIcon = document.getElementById('meal-toggle-icon');
+    const toggleText = document.getElementById('meal-toggle-text');
+
+    const isCondensed = condensedViews[0].style.display !== 'none';
+
+    if (isCondensed) {
+        // Show detailed view
+        condensedViews.forEach(view => view.style.display = 'none');
+        detailedViews.forEach(view => view.classList.remove('hidden'));
+        toggleIcon.className = 'fas fa-chevron-up mr-2';
+        toggleText.textContent = 'View Less Details';
+    } else {
+        // Show condensed view
+        condensedViews.forEach(view => view.style.display = 'block');
+        detailedViews.forEach(view => view.classList.add('hidden'));
+        toggleIcon.className = 'fas fa-chevron-down mr-2';
+        toggleText.textContent = 'View More Details';
+    }
+}
+
+// Initialize water reminders on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadWaterReminderSettings();
+    updateWaterStreak();
+    updateReminderStatusIndicator();
+    updateDailyTip();
+    updateCurrentTime();
+    updateLimitBars();
+    checkLimitWarnings();
+
+    // Update time every minute
+    setInterval(updateCurrentTime, 60000);
+
+    // Close modals when clicking outside
+    document.addEventListener('click', function(event) {
+        const waterModal = document.getElementById('waterModal');
+        const reminderModal = document.getElementById('waterReminderModal');
+
+        if (event.target === waterModal) {
+            closeWaterModal();
+        }
+        if (event.target === reminderModal) {
+            closeWaterReminderModal();
+        }
+    });
+
+    // Request notification permission on first visit if not already set
+    if ('Notification' in window && Notification.permission === 'default') {
+        // Don't request immediately, wait for user interaction
+        setTimeout(() => {
+            if (waterReminderSettings.enabled && waterReminderSettings.browserNotifications) {
+                Notification.requestPermission();
+            }
+        }, 5000);
+    }
+});
+</script>
+{% endblock %}
